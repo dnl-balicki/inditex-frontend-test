@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getProducts } from '../services/api';
 
 export function useProducts() {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
+
+    setIsLoading(true);
+    setError(null);
 
     getProducts(controller.signal)
       .then((result) => {
@@ -27,7 +31,9 @@ export function useProducts() {
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [retryKey]);
 
-  return { data, isLoading, error };
+  const retry = useCallback(() => setRetryKey((k) => k + 1), []);
+
+  return { data, isLoading, error, retry };
 }

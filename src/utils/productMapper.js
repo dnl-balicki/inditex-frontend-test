@@ -1,0 +1,17 @@
+export const mapProduct = (raw) => ({
+  id: raw.id,
+  brand: raw.brand,
+  model: raw.model,
+  price: raw.price,
+  imgUrl: raw.imgUrl,
+  cpu: raw.cpu,
+  ram: raw.ram,
+  os: raw.os,
+  screen: raw.displayResolution,
+  battery: raw.battery,
+  camera: Array.isArray(raw.primaryCamera) ? raw.primaryCamera.join(', ') : raw.primaryCamera,
+  frontCamera: raw.secondaryCmera,
+  dimensions: raw.dimentions,
+  weight: raw.weight,
+  options: raw.options,
+});

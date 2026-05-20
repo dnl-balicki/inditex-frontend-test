@@ -8,7 +8,7 @@ import './ProductList.css';
 const PAGE_SIZE = 10;
 
 function ProductList() {
-  const { data: products, isLoading, error } = useProducts();
+  const { data: products, isLoading, error, retry } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
 
@@ -53,7 +53,12 @@ function ProductList() {
     );
   }
 
-  if (error) return <div className="error">{error}</div>;
+  if (error) return (
+    <div className="error">
+      <p>{error}</p>
+      <button className="retry-btn" onClick={retry}>Try again</button>
+    </div>
+  );
 
   return (
     <section className="product-list">

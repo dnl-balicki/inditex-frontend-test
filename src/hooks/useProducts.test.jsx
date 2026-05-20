@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useProducts } from './useProducts';
 import * as api from '../services/api';
 
@@ -47,5 +47,26 @@ describe('useProducts', () => {
     const { result } = renderHook(() => useProducts());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(api.getProducts).toHaveBeenCalledWith(expect.any(AbortSignal));
+  });
+
+  it('shouldExposeARetryFunction', () => {
+    api.getProducts.mockReturnValue(new Promise(() => {}));
+    const { result } = renderHook(() => useProducts());
+    expect(result.current.retry).toBeInstanceOf(Function);
+  });
+
+  it('shouldRefetchDataWhenRetryIsCalled', async () => {
+    const products = [{ id: '1', brand: 'Apple', model: 'iPhone 12', price: '999' }];
+    api.getProducts
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce(products);
+
+    const { result } = renderHook(() => useProducts());
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+
+    act(() => result.current.retry());
+
+    await waitFor(() => expect(result.current.data).toEqual(products));
+    expect(result.current.error).toBeNull();
   });
 });

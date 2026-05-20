@@ -6,25 +6,22 @@ import Skeleton from '../../components/Skeleton/Skeleton';
 import './ProductDetail.css';
 
 const SPEC_ROWS = [
-  { key: 'cpu',              label: 'CPU'          },
-  { key: 'ram',              label: 'RAM'          },
-  { key: 'os',               label: 'OS'           },
-  { key: 'displayResolution', label: 'Screen'      },
-  { key: 'battery',          label: 'Battery'      },
-  { key: 'primaryCamera',    label: 'Camera'       },
-  { key: 'secondaryCmera',   label: 'Front Camera' },
-  { key: 'dimentions',       label: 'Dimensions'   },
-  { key: 'weight',           label: 'Weight'       },
+  { key: 'cpu',         label: 'CPU'          },
+  { key: 'ram',         label: 'RAM'          },
+  { key: 'os',          label: 'OS'           },
+  { key: 'screen',      label: 'Screen'       },
+  { key: 'battery',     label: 'Battery'      },
+  { key: 'camera',      label: 'Camera'       },
+  { key: 'frontCamera', label: 'Front Camera' },
+  { key: 'dimensions',  label: 'Dimensions'   },
+  { key: 'weight',      label: 'Weight'       },
 ];
 
-const formatSpec = (value) => {
-  if (Array.isArray(value)) return value.join(', ');
-  return value ?? '—';
-};
+const formatSpec = (value) => value ?? '—';
 
 function ProductDetail() {
   const { id } = useParams();
-  const { data: product, isLoading, error } = useProductDetail(id);
+  const { data: product, isLoading, error, retry } = useProductDetail(id);
   const { addToCart } = useCart();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedStorage, setSelectedStorage] = useState('');
@@ -80,7 +77,13 @@ function ProductDetail() {
     );
   }
 
-  if (error) return <div className="error">{error}</div>;
+  if (error) return (
+    <div className="error">
+      <p>{error}</p>
+      <button className="retry-btn" onClick={retry}>Try again</button>
+    </div>
+  );
+
   if (!product) return null;
 
   return (

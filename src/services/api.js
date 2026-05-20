@@ -1,4 +1,5 @@
 import { getCache, setCache } from './cache';
+import { mapProduct } from '../utils/productMapper';
 
 const BASE_URL = 'https://itx-frontend-test.onrender.com/api';
 
@@ -23,7 +24,7 @@ export const getProduct = async (id, signal) => {
   const cacheKey = `product_${id}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
-  const data = await request(`${BASE_URL}/product/${id}`, { signal });
+  const data = mapProduct(await request(`${BASE_URL}/product/${id}`, { signal }));
   setCache(cacheKey, data);
   return data;
 };

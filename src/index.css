@@ -42,3 +42,36 @@ body {
   animation: skeleton-shimmer 1.4s ease infinite;
   border-radius: 2px;
 }
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  text-align: center;
+}
+
+.error p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.retry-btn {
+  padding: 10px 24px;
+  font-size: 0.72rem;
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background-color: var(--white);
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.retry-btn:hover {
+  border-color: var(--black);
+}
