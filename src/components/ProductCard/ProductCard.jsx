@@ -1,23 +1,15 @@
+import { Link } from 'react-router-dom';
 import './ProductCard.css';
 
-function ProductCard({ product, onClick }) {
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') onClick();
-  };
-
+function ProductCard({ product, to }) {
   return (
-    <div
-      className="product-card"
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-    >
+    <Link to={to} className="product-card">
       <div className="product-card-image-wrapper">
         <img
           src={product.imgUrl}
           alt={`${product.brand} ${product.model}`}
           className="product-card-image"
+          loading="lazy"
         />
       </div>
       <div className="product-card-info">
@@ -25,7 +17,7 @@ function ProductCard({ product, onClick }) {
         <p className="product-model">{product.model}</p>
         <p className="product-price">{product.price ? `${product.price} EUR` : 'N/A'}</p>
       </div>
-    </div>
+    </Link>
   );
 }
 

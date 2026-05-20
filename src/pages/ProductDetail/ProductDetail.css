@@ -87,7 +87,7 @@
 
 .spec-table {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 120px 1fr;
   border-top: 1px solid var(--border);
 }
 
@@ -192,6 +192,82 @@
   opacity: 0.6;
 }
 
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--black);
+  color: var(--white);
+  padding: 12px 28px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  z-index: 500;
+  white-space: nowrap;
+  animation: toast-slide-in 0.2s ease;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.skeleton-back-link {
+  height: 12px;
+  width: 52px;
+  margin-bottom: 36px;
+  display: block;
+}
+
+.skeleton-detail-image {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  border-radius: 0;
+}
+
+.skeleton-detail-brand {
+  height: 10px;
+  width: 36%;
+}
+
+.skeleton-detail-model {
+  height: 28px;
+  width: 72%;
+  margin-top: 4px;
+}
+
+.skeleton-detail-price {
+  height: 16px;
+  width: 28%;
+  margin-top: 10px;
+}
+
+.skeleton-spec-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.skeleton-spec-row {
+  height: 12px;
+  width: 80%;
+}
+
+.skeleton-add-btn {
+  height: 52px;
+  width: 100%;
+  border-radius: 0;
+}
+
 @media (max-width: 960px) {
   .detail-content {
     grid-template-columns: 1fr;
@@ -203,6 +279,11 @@
   }
 
   .detail-image {
+    aspect-ratio: 4 / 3;
+    max-height: 440px;
+  }
+
+  .skeleton-detail-image {
     aspect-ratio: 4 / 3;
     max-height: 440px;
   }
