@@ -1,23 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getProducts } from '../../services/api';
+import { useProducts } from '../../hooks/useProducts';
+import Skeleton from '../../components/Skeleton/Skeleton';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import './ProductList.css';
 
+const PAGE_SIZE = 10;
+
 function ProductList() {
-  const [products, setProducts] = useState([]);
+  const { data: products, isLoading, error } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    getProducts()
-      .then(setProducts)
-      .catch(() => setError('Failed to load products. Please try again later.'))
-      .finally(() => setLoading(false));
-  }, []);
+    setPage(1);
+  }, [searchTerm]);
 
   const filteredProducts = products.filter((product) => {
     const term = searchTerm.toLowerCase();
@@ -27,7 +24,35 @@ function ProductList() {
     );
   });
 
-  if (loading) return <div className="loading">Loading...</div>;
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const paginatedProducts = filteredProducts.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
+  if (isLoading) {
+    return (
+      <section className="product-list">
+        <div className="list-toolbar">
+          <Skeleton className="skeleton-meta" />
+          <Skeleton className="skeleton-searchbar" />
+        </div>
+        <div className="product-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="skeleton-card">
+              <Skeleton className="skeleton-card-image" />
+              <div className="skeleton-card-body">
+                <Skeleton className="skeleton-card-brand" />
+                <Skeleton className="skeleton-card-model" />
+                <Skeleton className="skeleton-card-price" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (error) return <div className="error">{error}</div>;
 
   return (
@@ -36,18 +61,45 @@ function ProductList() {
         <p className="list-meta">{filteredProducts.length} products</p>
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
       </div>
+
       <div className="product-grid">
-        {filteredProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
-            onClick={() => navigate(`/product/${product.id}`)}
+            to={`/product/${product.id}`}
           />
         ))}
-        {filteredProducts.length === 0 && (
-          <p className="no-results">No results for &ldquo;{searchTerm}&rdquo;</p>
-        )}
       </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="no-results">
+          <p className="no-results-title">No results found</p>
+          <p className="no-results-subtitle">
+            No products match &ldquo;{searchTerm}&rdquo;
+          </p>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            className="pagination-btn"
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+          <span className="pagination-info">{page} / {totalPages}</span>
+          <button
+            className="pagination-btn"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </section>
   );
 }

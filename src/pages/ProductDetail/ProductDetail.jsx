@@ -1,51 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProduct, addToCart } from '../../services/api';
-import { useCart } from '../../context/CartContext';
+import { useProductDetail } from '../../hooks/useProductDetail';
+import { useCart } from '../../hooks/useCart';
+import Skeleton from '../../components/Skeleton/Skeleton';
 import './ProductDetail.css';
+
+const SPEC_ROWS = [
+  { key: 'cpu',              label: 'CPU'          },
+  { key: 'ram',              label: 'RAM'          },
+  { key: 'os',               label: 'OS'           },
+  { key: 'displayResolution', label: 'Screen'      },
+  { key: 'battery',          label: 'Battery'      },
+  { key: 'primaryCamera',    label: 'Camera'       },
+  { key: 'secondaryCmera',   label: 'Front Camera' },
+  { key: 'dimentions',       label: 'Dimensions'   },
+  { key: 'weight',           label: 'Weight'       },
+];
+
+const formatSpec = (value) => {
+  if (Array.isArray(value)) return value.join(', ');
+  return value ?? '—';
+};
 
 function ProductDetail() {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: product, isLoading, error } = useProductDetail(id);
+  const { addToCart } = useCart();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedStorage, setSelectedStorage] = useState('');
   const [cartError, setCartError] = useState(null);
-  const { updateCartCount } = useCart();
+  const [cartSuccess, setCartSuccess] = useState(false);
+  const toastTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   useEffect(() => {
-    getProduct(id)
-      .then((data) => {
-        setProduct(data);
-        if (data.options?.colors?.length > 0) {
-          setSelectedColor(String(data.options.colors[0].code));
-        }
-        if (data.options?.storages?.length > 0) {
-          setSelectedStorage(String(data.options.storages[0].code));
-        }
-      })
-      .catch(() => setError('Failed to load product. Please try again later.'))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (product?.options?.colors?.length > 0) {
+      setSelectedColor(String(product.options.colors[0].code));
+    }
+    if (product?.options?.storages?.length > 0) {
+      setSelectedStorage(String(product.options.storages[0].code));
+    }
+  }, [product]);
 
   const handleAddToCart = async () => {
     try {
-      const result = await addToCart(id, Number(selectedColor), Number(selectedStorage));
-      updateCartCount(result.count);
+      await addToCart(id, Number(selectedColor), Number(selectedStorage));
       setCartError(null);
+      clearTimeout(toastTimer.current);
+      setCartSuccess(true);
+      toastTimer.current = setTimeout(() => setCartSuccess(false), 3000);
     } catch {
       setCartError('Could not add to cart. Please try again.');
+      setCartSuccess(false);
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (isLoading) {
+    return (
+      <section className="product-detail">
+        <Skeleton className="skeleton-back-link" />
+        <div className="detail-content">
+          <Skeleton className="skeleton-detail-image" />
+          <div className="detail-info">
+            <div className="product-heading">
+              <Skeleton className="skeleton-detail-brand" />
+              <Skeleton className="skeleton-detail-model" />
+              <Skeleton className="skeleton-detail-price" />
+            </div>
+            <div className="skeleton-spec-table">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="skeleton-spec-row" />
+              ))}
+            </div>
+            <Skeleton className="skeleton-add-btn" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (error) return <div className="error">{error}</div>;
   if (!product) return null;
-
-  const cameras = Array.isArray(product.primaryCamera)
-    ? product.primaryCamera.join(', ')
-    : product.primaryCamera;
 
   return (
     <section className="product-detail">
@@ -53,7 +89,11 @@ function ProductDetail() {
 
       <div className="detail-content">
         <div className="detail-image">
-          <img src={product.imgUrl} alt={`${product.brand} ${product.model}`} />
+          <img
+            src={product.imgUrl}
+            alt={`${product.brand} ${product.model}`}
+            loading="lazy"
+          />
         </div>
 
         <div className="detail-info">
@@ -64,38 +104,12 @@ function ProductDetail() {
           </div>
 
           <div className="spec-table">
-            <div className="spec-row">
-              <span className="spec-key">CPU</span>
-              <span className="spec-val">{product.cpu}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">RAM</span>
-              <span className="spec-val">{product.ram}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">OS</span>
-              <span className="spec-val">{product.os}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">Screen</span>
-              <span className="spec-val">{product.displayResolution}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">Battery</span>
-              <span className="spec-val">{product.battery}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">Camera</span>
-              <span className="spec-val">{cameras} / {product.secondaryCmera}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">Dimensions</span>
-              <span className="spec-val">{product.dimentions}</span>
-            </div>
-            <div className="spec-row">
-              <span className="spec-key">Weight</span>
-              <span className="spec-val">{product.weight}</span>
-            </div>
+            {SPEC_ROWS.filter(({ key }) => product[key] !== undefined).map(({ key, label }) => (
+              <div key={key} className="spec-row">
+                <span className="spec-key">{label}</span>
+                <span className="spec-val">{formatSpec(product[key])}</span>
+              </div>
+            ))}
           </div>
 
           <div className="detail-actions">
@@ -141,6 +155,12 @@ function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {cartSuccess && (
+        <div className="toast" role="status" aria-live="polite">
+          Added to cart
+        </div>
+      )}
     </section>
   );
 }
