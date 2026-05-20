@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import ProductCard from './ProductCard';
 
 const mockProduct = {
@@ -10,23 +11,28 @@ const mockProduct = {
   imgUrl: 'https://example.com/image.jpg',
 };
 
+const renderCard = (overrides = {}) =>
+  render(
+    <MemoryRouter>
+      <ProductCard product={mockProduct} to="/product/1" {...overrides} />
+    </MemoryRouter>
+  );
+
 describe('ProductCard', () => {
   it('renders brand, model and price', () => {
-    render(<ProductCard product={mockProduct} onClick={() => {}} />);
+    renderCard();
     expect(screen.getByText('Apple')).toBeInTheDocument();
     expect(screen.getByText('iPhone 12')).toBeInTheDocument();
     expect(screen.getByText('999 EUR')).toBeInTheDocument();
   });
 
-  it('calls onClick when clicked', () => {
-    const onClick = vi.fn();
-    render(<ProductCard product={mockProduct} onClick={onClick} />);
-    fireEvent.click(screen.getByRole('button'));
-    expect(onClick).toHaveBeenCalledTimes(1);
+  it('renders as a navigation link pointing to the product route', () => {
+    renderCard();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/product/1');
   });
 
   it('shows N/A when price is absent', () => {
-    render(<ProductCard product={{ ...mockProduct, price: null }} onClick={() => {}} />);
+    renderCard({ product: { ...mockProduct, price: null } });
     expect(screen.getByText('N/A')).toBeInTheDocument();
   });
 });
